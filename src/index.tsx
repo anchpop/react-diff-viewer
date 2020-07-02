@@ -31,6 +31,8 @@ export interface ReactDiffViewerProps {
 	newValue: string;
 	// Enable/Disable split view.
 	splitView?: boolean;
+	// Choose whether to show the correct/green/right side of the diff
+	showAdded?: boolean;
 	// Set line Offset
 	linesOffset?: number;
 	// Enable/Disable word diff.
@@ -76,13 +78,14 @@ export interface ReactDiffViewerState {
 class DiffViewer extends React.Component<
 	ReactDiffViewerProps,
 	ReactDiffViewerState
-> {
+	> {
 	private styles: ReactDiffViewerStyles;
 
 	public static defaultProps: ReactDiffViewerProps = {
 		oldValue: '',
 		newValue: '',
 		splitView: true,
+		showAdded: true,
 		highlightLines: [],
 		disableWordDiff: false,
 		compareMethod: DiffMethod.CHARS,
@@ -98,6 +101,7 @@ class DiffViewer extends React.Component<
 		oldValue: PropTypes.string.isRequired,
 		newValue: PropTypes.string.isRequired,
 		splitView: PropTypes.bool,
+		hideCorrect: PropTypes.bool,
 		disableWordDiff: PropTypes.bool,
 		compareMethod: PropTypes.oneOf(Object.values(DiffMethod)),
 		renderContent: PropTypes.func,
@@ -168,7 +172,7 @@ class DiffViewer extends React.Component<
 		if (this.props.onLineNumberClick) {
 			return (e: any): void => this.props.onLineNumberClick(id, e);
 		}
-		return (): void => {};
+		return (): void => { };
 	};
 
 	/**
@@ -215,6 +219,7 @@ class DiffViewer extends React.Component<
 		type: DiffType,
 		prefix: LineNumberPrefix,
 		value: string | DiffInformation[],
+		showAdded: boolean,
 		additionalLineNumber?: number,
 		additionalPrefix?: LineNumberPrefix,
 	): JSX.Element => {
@@ -234,6 +239,7 @@ class DiffViewer extends React.Component<
 			content = value;
 		}
 
+		if (added === true && !showAdded) { return (<></>) }
 		return (
 			<React.Fragment>
 				{!this.props.hideLineNumbers && (
@@ -309,12 +315,14 @@ class DiffViewer extends React.Component<
 					left.type,
 					LineNumberPrefix.LEFT,
 					left.value,
+					true,
 				)}
 				{this.renderLine(
 					right.lineNumber,
 					right.type,
 					LineNumberPrefix.RIGHT,
 					right.value,
+					true,
 				)}
 			</tr>
 		);
@@ -331,6 +339,7 @@ class DiffViewer extends React.Component<
 	public renderInlineView = (
 		{ left, right }: LineInformation,
 		index: number,
+		showAdded: boolean
 	): JSX.Element => {
 		let content;
 		if (left.type === DiffType.REMOVED && right.type === DiffType.ADDED) {
@@ -342,6 +351,7 @@ class DiffViewer extends React.Component<
 							left.type,
 							LineNumberPrefix.LEFT,
 							left.value,
+							showAdded,
 							null,
 						)}
 					</tr>
@@ -351,6 +361,7 @@ class DiffViewer extends React.Component<
 							right.type,
 							LineNumberPrefix.RIGHT,
 							right.value,
+							showAdded,
 							right.lineNumber,
 						)}
 					</tr>
@@ -363,6 +374,7 @@ class DiffViewer extends React.Component<
 				left.type,
 				LineNumberPrefix.LEFT,
 				left.value,
+				showAdded,
 				null,
 			);
 		}
@@ -372,6 +384,7 @@ class DiffViewer extends React.Component<
 				left.type,
 				LineNumberPrefix.LEFT,
 				left.value,
+				showAdded,
 				right.lineNumber,
 				LineNumberPrefix.RIGHT,
 			);
@@ -382,6 +395,7 @@ class DiffViewer extends React.Component<
 				right.type,
 				LineNumberPrefix.RIGHT,
 				right.value,
+				showAdded,
 				right.lineNumber,
 			);
 		}
@@ -424,8 +438,8 @@ class DiffViewer extends React.Component<
 				rightBlockLineNumber,
 			)
 		) : (
-			<pre className={this.styles.codeFoldContent}>Expand {num} lines ...</pre>
-		);
+				<pre className={this.styles.codeFoldContent}>Expand {num} lines ...</pre>
+			);
 		const content = (
 			<td>
 				<a onClick={this.onBlockClickProxy(blockNumber)} tabIndex={0}>
@@ -452,11 +466,11 @@ class DiffViewer extends React.Component<
 						{content}
 					</React.Fragment>
 				) : (
-					<React.Fragment>
-						{content}
-						<td />
-					</React.Fragment>
-				)}
+						<React.Fragment>
+							{content}
+							<td />
+						</React.Fragment>
+					)}
 
 				<td />
 				<td />
@@ -475,6 +489,7 @@ class DiffViewer extends React.Component<
 			disableWordDiff,
 			compareMethod,
 			linesOffset,
+			showAdded
 		} = this.props;
 		const { lineInformation, diffLines } = computeLineInformation(
 			oldValue,
@@ -518,7 +533,7 @@ class DiffViewer extends React.Component<
 
 				const diffNodes = splitView
 					? this.renderSplitView(line, i)
-					: this.renderInlineView(line, i);
+					: this.renderInlineView(line, i, showAdded);
 
 				if (currentPosition === extraLines && skippedLines.length > 0) {
 					const { length } = skippedLines;
