@@ -101,7 +101,6 @@ class DiffViewer extends React.Component<
 		oldValue: PropTypes.string.isRequired,
 		newValue: PropTypes.string.isRequired,
 		splitView: PropTypes.bool,
-		hideCorrect: PropTypes.bool,
 		disableWordDiff: PropTypes.bool,
 		compareMethod: PropTypes.oneOf(Object.values(DiffMethod)),
 		renderContent: PropTypes.func,
@@ -201,6 +200,13 @@ class DiffViewer extends React.Component<
 		);
 	};
 
+	private flattenDiffInformation = (
+		diffArray: DiffInformation[],
+	): string => {
+		return diffArray.map(
+			(wordDiff, i): string => (wordDiff.value as string)).join('')
+	};
+
 	/**
 	 * Maps over the line diff and constructs the required react elements to show line diff. It calls
 	 * renderWordDiff when encountering word diff. This takes care of both inline and split view line
@@ -230,7 +236,7 @@ class DiffViewer extends React.Component<
 			this.props.highlightLines.includes(additionalLineNumberTemplate);
 		const added = type === DiffType.ADDED;
 		const removed = type === DiffType.REMOVED;
-		let content;
+		let content: JSX.Element[] | JSX.Element | string;
 		if (Array.isArray(value)) {
 			content = this.renderWordDiff(value, this.props.renderContent);
 		} else if (this.props.renderContent) {
@@ -239,7 +245,20 @@ class DiffViewer extends React.Component<
 			content = value;
 		}
 
-		if (added === true && !showAdded) { return (<></>) }
+
+		if (added === true && !showAdded) {
+			let plainContent = "";
+			if (Array.isArray(value)) {
+				plainContent = this.flattenDiffInformation(value)
+			} else {
+				plainContent = value
+			}
+
+			if (plainContent.trim().length > 2) {
+				content = "[REDACTED]"
+			}
+		}
+
 		return (
 			<React.Fragment>
 				{!this.props.hideLineNumbers && (

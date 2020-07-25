@@ -90,7 +90,7 @@ class Example extends React.Component<{}, ExampleState> {
             onLineNumberClick={this.onLineNumberClick}
             oldValue={oldJs}
             splitView={false}
-            hideCorrect={true}
+            showAdded={false}
             newValue={newJs}
             renderContent={this.syntaxHighlight}
             useDarkTheme

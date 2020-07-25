@@ -36,7 +36,6 @@ declare class DiffViewer extends React.Component<ReactDiffViewerProps, ReactDiff
         oldValue: PropTypes.Validator<string>;
         newValue: PropTypes.Validator<string>;
         splitView: PropTypes.Requireable<boolean>;
-        hideCorrect: PropTypes.Requireable<boolean>;
         disableWordDiff: PropTypes.Requireable<boolean>;
         compareMethod: PropTypes.Requireable<DiffMethod>;
         renderContent: PropTypes.Requireable<(...args: any[]) => any>;
@@ -82,6 +81,7 @@ declare class DiffViewer extends React.Component<ReactDiffViewerProps, ReactDiff
      * @param renderer Optional renderer to format diff words. Useful for syntax highlighting.
      */
     private renderWordDiff;
+    private flattenDiffInformation;
     /**
      * Maps over the line diff and constructs the required react elements to show line diff. It calls
      * renderWordDiff when encountering word diff. This takes care of both inline and split view line
