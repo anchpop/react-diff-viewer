@@ -255,7 +255,8 @@ class DiffViewer extends React.Component<
 			}
 
 			if (plainContent.trim().length > 2) {
-				content = "[REDACTED]"
+				let numberOfSpaces = plainContent.search(/\S|$/)
+				content = " ".repeat(numberOfSpaces) + "[REDACTED]"
 			}
 		}
 
